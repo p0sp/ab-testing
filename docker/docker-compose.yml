@@ -1,0 +1,43 @@
+#TODO: remove external ports mapping, automate explicit bridge network creation
+version: "3.7"
+
+services:
+
+    php-fpm:
+        image: ab-test-php
+        build:
+            context: ..
+            dockerfile: ${PWD}/docker/php-fpm/Dockerfile
+
+        restart: always
+        command: /startup/start-web.sh php-fpm
+        volumes:
+            - ${PWD}:/code
+        networks:
+            ab-test-network:
+                aliases:
+                    - ab-test-fpm
+        container_name: ab-test-php-fpm
+
+    nginx:
+        container_name: ab-test-nginx
+        volumes:
+            - ${PWD}/public:/code/public
+        build:
+            context: ..
+            dockerfile: ${PWD}/docker/nginx/Dockerfile
+        depends_on:
+                - php-fpm
+        ports:
+                - 8080:80
+        networks:
+            ab-test-network:
+                aliases:
+                    - ab-test-nginx
+
+networks:
+    ab-test-network:
+        external: true
+        driver: bridge
+
+
