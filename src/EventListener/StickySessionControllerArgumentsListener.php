@@ -8,7 +8,6 @@ use Throwable;
 
 class StickySessionControllerArgumentsListener
 {
-
     private const KEY_AB_HYPOTHESIS = 'ab-hypothesis';
 
 //    HINT: this can be injected as app paramater, not as const
@@ -41,7 +40,6 @@ class StickySessionControllerArgumentsListener
             } else {
                 $currentHypothesis = base64_decode($currentHypothesis);
             }
-
 
             $arguments = $event->getArguments();
             array_pop($arguments);
