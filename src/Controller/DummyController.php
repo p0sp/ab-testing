@@ -7,7 +7,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 class DummyController extends AbstractController
 {
-
     /**
      * @return array
      *

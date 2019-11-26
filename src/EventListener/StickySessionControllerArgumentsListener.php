@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\EventListener;
 
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
@@ -23,6 +22,9 @@ class StickySessionControllerArgumentsListener
         $this->abSecret = $abSecret;
     }
 
+    /**
+     * @param ControllerArgumentsEvent $event
+     */
     public function onKernelControllerArguments(ControllerArgumentsEvent $event)
     {
         try {
@@ -43,23 +45,29 @@ class StickySessionControllerArgumentsListener
 
             $arguments = $event->getArguments();
             array_pop($arguments);
-            array_push($arguments, $currentHypothesis);
+            $arguments[] = $currentHypothesis;
             $event->setArguments([$event->getRequest(), $currentHypothesis]);
 
         } catch (throwable $exception) {
-            dd($exception);
-////            HINT: logger code goes here instead of dd (), so exceptions that happen above will notbreak anything
+            $this->log($exception->getMessage(), $exception->getTraceAsString());
         } finally {
             return;
         }
 
     }
 
+    /**
+     * @return string
+     */
     public function getSessionKey(): string
     {
         return hash('sha256', sprintf('%s~%s', $this->abSecret, self::KEY_AB_HYPOTHESIS));
     }
 
+    /**
+     * @return string
+     * @throws \Exception
+     */
     private function getRandomizedHypothesis(): string
     {
         $randomNumber = random_int(0, 100);
@@ -75,6 +83,10 @@ class StickySessionControllerArgumentsListener
 
     }
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
     private function getHypothesesDistribution(): array
     {
         $density = [];
@@ -86,13 +98,18 @@ class StickySessionControllerArgumentsListener
             }
 
             $density[$hypothesis] = $carry + $percentage;
-            $carry = $carry + $percentage;
+            $carry += $percentage;
         }
 
-        if ($carry != 100) {
+        if ($carry !== 100) {
             throw new \Exception(sprintf('Invalid AB hypothesis density given, sum of percentages must be equal 100, %d obtained', $carry));
         }
 
         return $density;
+    }
+
+    private function log(string $message, string $context): void
+    {
+//        Logger code goes here
     }
 }
